@@ -1,45 +1,45 @@
 CREATE TABLE faculty (id INT IDENTITY(1,1) PRIMARY KEY,
-    		      faculty_name NVARCHAR(100) NOT NULL);
+    		          faculty_name NVARCHAR(100) NOT NULL);
 
 CREATE TABLE form (id INT IDENTITY(1,1) PRIMARY KEY,
-    		   form_name NVARCHAR(50) NOT NULL);
+    		       form_name NVARCHAR(50) NOT NULL);
 
 CREATE TABLE stud (id INT IDENTITY(1,1) PRIMARY KEY,
-    		   Last_name NVARCHAR(50) NOT NULL,
-    		   F_name NVARCHAR(50) NOT NULL,
-    		   S_name NVARCHAR(50) NULL,
-    		   Br_date DATE NOT NULL,
-    		   In_date DATE NOT NULL,
-    		   Exm DECIMAL(4,2));
+    		       Last_name NVARCHAR(50) NOT NULL,
+    		       F_name NVARCHAR(50) NOT NULL,
+    		       S_name NVARCHAR(50) NULL,
+    		       Br_date DATE NOT NULL,
+    		       In_date DATE NOT NULL,
+    		       Exm DECIMAL(4,2));
 
 CREATE TABLE subjects (id INT PRIMARY KEY IDENTITY(1,1),
-    		       Subject_name NVARCHAR(100) NOT NULL);
+    		           Subject_name NVARCHAR(100) NOT NULL);
 
 CREATE TABLE hours (id INT IDENTITY(1,1) PRIMARY KEY,
-    		    Course INT NOT NULL,
-    		    Faculty_id INT NOT NULL,
-    		    Form_id INT NOT NULL,
-		    Subject_id INT NOT NULL,
-    		    All_h INT,
-    		    Inclass_h INT,
-    		    FOREIGN KEY (Faculty_id) REFERENCES faculty(id),
-    		    FOREIGN KEY (Form_id) REFERENCES form(id),
-		    FOREIGN KEY (Subject_id) REFERENCES subjects(id));
+    		        Course INT NOT NULL,
+    		        Faculty_id INT NOT NULL,
+    		        Form_id INT NOT NULL,
+		            Subject_id INT NOT NULL,
+    		        All_h INT,
+    		        Inclass_h INT,
+    		        FOREIGN KEY (Faculty_id) REFERENCES faculty(id),
+    		        FOREIGN KEY (Form_id) REFERENCES form(id),
+		            FOREIGN KEY (Subject_id) REFERENCES subjects(id));
 
 CREATE TABLE process (id INT IDENTITY(1,1) PRIMARY KEY,
-    		      Stud_id INT NOT NULL,
-    		      Hours_id INT NOT NULL,
-    		      FOREIGN KEY (stud_id) REFERENCES stud(id),
-    		      FOREIGN KEY (hours_id) REFERENCES hours(id));
+    		          Stud_id INT NOT NULL,
+    		          Hours_id INT NOT NULL,
+    		          FOREIGN KEY (stud_id) REFERENCES stud(id),
+    		          FOREIGN KEY (hours_id) REFERENCES hours(id));
 
 INSERT INTO faculty (faculty_name) VALUES ('Учетно-экономический факультет'), 
-					  ('Факультет финансов и банковского дела'), 
-					  ('Факультет маркетинга и логистики'), 
-  					  ('Факультет международных экономических отношений'), 
-					  ('Факультет права');
+					  					  ('Факультет финансов и банковского дела'), 
+					  				      ('Факультет маркетинга и логистики'), 
+  					   					  ('Факультет международных экономических отношений'), 
+					   					  ('Факультет права');
 
 INSERT INTO form (form_name) VALUES ('Очная'), 
-				    ('Заочная');
+				    			    ('Заочная');
 
 INSERT INTO stud (last_name, f_name, s_name, br_date, in_date, exm) VALUES 
 ('Сергеева', 'Алиса', 'Александровна', '20040812', '20220901', 7.7),
@@ -52,19 +52,19 @@ INSERT INTO stud (last_name, f_name, s_name, br_date, in_date, exm) VALUES
 ('Кузнецов', 'Владимир', 'Петрович', '19700315', '20100901', 6.5);
 
 INSERT INTO subjects (Subject_name) VALUES ('Экономическая теория'),
-					   ('Бухгалтерский учет'),
-					   ('Налоги и налогообложение'),
-				           ('Экономический анализ'),
-					   ('Финансы'),
-					   ('Банковское дело'),
-					   ('Инвестиции'),
-					   ('Мировая экономика');
+					  					   ('Бухгалтерский учет'),
+					  					   ('Налоги и налогообложение'),
+				      				       ('Экономический анализ'),
+					  				       ('Финансы'),
+					  				       ('Банковское дело'),
+					   					   ('Инвестиции'),
+					   				       ('Мировая экономика');
 
 INSERT INTO hours (course, faculty_id, form_id, Subject_id, all_h, inclass_h) VALUES (2, 2, 2, 3, 120, 60),
-									 	     (1, 3, 1, 1, 100, 40),
-									 	     (3, 1, 1, 2, 110, 50),
-									 	     (1, 1, 2, 4, 120, 30),
-									 	     (4, 4, 1, 7, 90, 45);
+									 	     										 (1, 3, 1, 1, 100, 40),
+									 	     										 (3, 1, 1, 2, 110, 50),
+									 	     										 (1, 1, 2, 4, 120, 30),
+									 	     										 (4, 4, 1, 7, 90, 45);
 
 INSERT INTO process (stud_id, hours_id) VALUES (1, 1), 
 					       (2, 2), 
@@ -106,7 +106,7 @@ CREATE PROCEDURE get_subjects_stat
 @same_count INT OUTPUT
 AS
 BEGIN
-	SELECT @fac1_count = COUNT(subject_id) FROM hours WHERE faculty_id = 1;
+		SELECT @fac1_count = COUNT(subject_id) FROM hours WHERE faculty_id = 1;
         SELECT @fac2_count = COUNT(subject_id) FROM hours WHERE faculty_id = 2;
         SELECT @fac3_count = COUNT(subject_id) FROM hours WHERE faculty_id = 3;
         SELECT @fac4_count = COUNT(subject_id) FROM hours WHERE faculty_id = 4;
@@ -117,7 +117,7 @@ END;
 GO
 DECLARE @accounting_econ INT, @finance_bank INT, @marketing_log INT, @int_econ INT, @law INT, @same INT;
 EXEC get_subjects_stat 
-	@fac1_count = @accounting_econ OUTPUT,
+		@fac1_count = @accounting_econ OUTPUT,
         @fac2_count = @finance_bank OUTPUT,
         @fac3_count = @marketing_log OUTPUT,
         @fac4_count = @int_econ OUTPUT,
