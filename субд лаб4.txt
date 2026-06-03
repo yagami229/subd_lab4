@@ -1,0 +1,193 @@
+CREATE TABLE faculty (id INT IDENTITY(1,1) PRIMARY KEY,
+    		      faculty_name NVARCHAR(100) NOT NULL);
+
+CREATE TABLE form (id INT IDENTITY(1,1) PRIMARY KEY,
+    		   form_name NVARCHAR(50) NOT NULL);
+
+CREATE TABLE stud (id INT IDENTITY(1,1) PRIMARY KEY,
+    		   Last_name NVARCHAR(50) NOT NULL,
+    		   F_name NVARCHAR(50) NOT NULL,
+    		   S_name NVARCHAR(50) NULL,
+    		   Br_date DATE NOT NULL,
+    		   In_date DATE NOT NULL,
+    		   Exm DECIMAL(4,2));
+
+CREATE TABLE subjects (id INT PRIMARY KEY IDENTITY(1,1),
+    		       Subject_name NVARCHAR(100) NOT NULL);
+
+CREATE TABLE hours (id INT IDENTITY(1,1) PRIMARY KEY,
+    		    Course INT NOT NULL,
+    		    Faculty_id INT NOT NULL,
+    		    Form_id INT NOT NULL,
+		    Subject_id INT NOT NULL,
+    		    All_h INT,
+    		    Inclass_h INT,
+    		    FOREIGN KEY (Faculty_id) REFERENCES faculty(id),
+    		    FOREIGN KEY (Form_id) REFERENCES form(id),
+		    FOREIGN KEY (Subject_id) REFERENCES subjects(id));
+
+CREATE TABLE process (id INT IDENTITY(1,1) PRIMARY KEY,
+    		      Stud_id INT NOT NULL,
+    		      Hours_id INT NOT NULL,
+    		      FOREIGN KEY (stud_id) REFERENCES stud(id),
+    		      FOREIGN KEY (hours_id) REFERENCES hours(id));
+
+INSERT INTO faculty (faculty_name) VALUES ('Учетно-экономический факультет'), 
+					  ('Факультет финансов и банковского дела'), 
+					  ('Факультет маркетинга и логистики'), 
+  					  ('Факультет международных экономических отношений'), 
+					  ('Факультет права');
+
+INSERT INTO form (form_name) VALUES ('Очная'), 
+				    ('Заочная');
+
+INSERT INTO stud (last_name, f_name, s_name, br_date, in_date, exm) VALUES 
+('Сергеева', 'Алиса', 'Александровна', '20040812', '20220901', 7.7),
+('Brown', 'Karen', NULL, '19990523', '20160901', 6.9), 
+('Ковалев', 'Дмитрий', 'Михайлович', '20060902', '20220901', 8.6),
+('Захарова', 'Екатерина', 'Данииловна', '20080822', '20250901', 9.1),
+('Taylor', 'Robert', NULL, '20030405', '20190901', 7.0),
+('Петров', 'Иван', 'Сергеевич', '19900510', '20150901', 8.0),
+('Соколова', 'Мария', 'Алексеевна', '19921120', '20140901', 7.5),
+('Кузнецов', 'Владимир', 'Петрович', '19700315', '20100901', 6.5);
+
+INSERT INTO subjects (Subject_name) VALUES ('Экономическая теория'),
+					   ('Бухгалтерский учет'),
+					   ('Налоги и налогообложение'),
+				           ('Экономический анализ'),
+					   ('Финансы'),
+					   ('Банковское дело'),
+					   ('Инвестиции'),
+					   ('Мировая экономика');
+
+INSERT INTO hours (course, faculty_id, form_id, Subject_id, all_h, inclass_h) VALUES (2, 2, 2, 3, 120, 60),
+									 	     (1, 3, 1, 1, 100, 40),
+									 	     (3, 1, 1, 2, 110, 50),
+									 	     (1, 1, 2, 4, 120, 30),
+									 	     (4, 4, 1, 7, 90, 45);
+
+INSERT INTO process (stud_id, hours_id) VALUES (1, 1), 
+					       (2, 2), 
+					       (3, 3), 
+					       (4, 4), 
+					       (5, 5),
+					       (6, 1),
+					       (7, 2),
+					       (8, 3);
+
+
+GO
+CREATE PROCEDURE count_of_students_faculty
+    @fac_name NVARCHAR(100),
+    @form_name NVARCHAR(100)
+AS
+BEGIN
+	DECLARE @count INT = 0;
+        SELECT @count = COUNT(DISTINCT p.stud_id)
+        FROM process p
+        JOIN hours ON p.hours_id = hours.id
+        JOIN faculty ON hours.faculty_id = faculty.id
+        JOIN form ON hours.form_id = form.id
+        WHERE faculty.faculty_name = @fac_name 
+        AND form.form_name = @form_name;
+	PRINT 'На факультете ' + @fac_name + ' (' + @form_name + ') учится ' + CAST(@count AS NVARCHAR(20)) + ' студентов';
+END;
+GO
+EXEC count_of_students_faculty 'Факультет права', 'Заочная';
+
+
+
+CREATE PROCEDURE get_subjects_stat
+@fac1_count INT OUTPUT,
+@fac2_count INT OUTPUT,
+@fac3_count INT OUTPUT,
+@fac4_count INT OUTPUT,
+@fac5_count INT OUTPUT,
+@same_count INT OUTPUT
+AS
+BEGIN
+	SELECT @fac1_count = COUNT(subject_id) FROM hours WHERE faculty_id = 1;
+        SELECT @fac2_count = COUNT(subject_id) FROM hours WHERE faculty_id = 2;
+        SELECT @fac3_count = COUNT(subject_id) FROM hours WHERE faculty_id = 3;
+        SELECT @fac4_count = COUNT(subject_id) FROM hours WHERE faculty_id = 4;
+        SELECT @fac5_count = COUNT(subject_id) FROM hours WHERE faculty_id = 5;
+        SELECT @same_count = COUNT(subject_id) FROM hours WHERE subject_id IN (
+        SELECT subject_id FROM hours GROUP BY subject_id HAVING COUNT(*) > 1);
+END;
+GO
+DECLARE @accounting_econ INT, @finance_bank INT, @marketing_log INT, @int_econ INT, @law INT, @same INT;
+EXEC get_subjects_stat 
+	@fac1_count = @accounting_econ OUTPUT,
+        @fac2_count = @finance_bank OUTPUT,
+        @fac3_count = @marketing_log OUTPUT,
+        @fac4_count = @int_econ OUTPUT,
+        @fac5_count = @law OUTPUT,
+        @same_count = @same OUTPUT;
+DECLARE @all_subjects INT = @accounting_econ + @finance_bank + @marketing_log + @int_econ + @law;
+PRINT 'Для Учетно-экономического факультета читается ' + CAST(@accounting_econ AS VARCHAR(5)) + ' предметов, ' +
+      'для Факультета финансов и банковского дела читается ' + CAST(@finance_bank AS VARCHAR(5)) + ' предметов, ' +
+      'для Факультета маркетинга и логистики читается ' + CAST(@marketing_log AS VARCHAR(5)) + ' предметов, ' +
+      'для Факультета международных экономических отношений читается ' + CAST(@int_econ AS VARCHAR(5)) + ' предметов, ' +
+      'для Факультета права читается ' + CAST(@law AS VARCHAR(5)) + ' предметов, ' +
+      'всего ' + CAST(@all_subjects AS VARCHAR(5)) + ' предметов (' + CAST(@same AS VARCHAR(5)) + ' из которых идентичны)';
+
+
+
+CREATE PROCEDURE add_new_stud
+    @l_name NVARCHAR(50),
+    @f_name NVARCHAR(50),
+    @s_name NVARCHAR(50),
+    @br_d DATE,
+    @in_d DATE,
+    @exm_val DECIMAL(4,2),
+    @fac_name NVARCHAR(100),
+    @form_name NVARCHAR(50)
+AS
+BEGIN
+    DECLARE @hr_id INT = NULL;
+    SELECT @hr_id = hours.id
+    FROM hours
+    JOIN faculty ON hours.faculty_id = faculty.id
+    JOIN form ON hours.form_id = form.id
+    WHERE faculty.faculty_name = @fac_name 
+    AND form.form_name = @form_name 
+    AND hours.course = 1;
+
+    IF @hr_id IS NULL
+    BEGIN
+	PRINT 'Ошибка! Такого факультета, формы обучения или 1 курса не существует!';
+    END
+    ELSE
+    BEGIN
+        INSERT INTO stud (last_name, f_name, s_name, br_date, in_date, exm)
+        VALUES (@l_name, @f_name, @s_name, @br_d, @in_d, @exm_val);
+        DECLARE @last_stud_id INT = SCOPE_IDENTITY();
+        INSERT INTO process (stud_id, hours_id)
+        VALUES (@last_stud_id, @hr_id);
+        PRINT 'Студент успешно добавлен на 1 курс.';
+    END
+END;
+GO
+EXEC add_new_stud
+    @l_name = 'Ефремов', 
+    @f_name = 'Георгий', 
+    @s_name = 'Валерьевич', 
+    @br_d = '20040404', 
+    @in_d = '20220901', 
+    @exm_val = 7.8, 
+    @fac_name = 'Учетно-экономический факультет', 
+    @form_name = 'Заочная';
+
+EXEC add_new_stud 
+    @l_name = 'Гришин', 
+    @f_name = 'Давид', 
+    @s_name = 'Александрович', 
+    @br_d = '20030203', 
+    @in_d = '20230901', 
+    @exm_val = 8.0, 
+    @fac_name = 'Факультет маркетинга и логистики', 
+    @form_name = 'Очная';
+
+
+
+
